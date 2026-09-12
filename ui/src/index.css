@@ -1,0 +1,112 @@
+@import 'tailwindcss';
+
+/* ──────────────────────────────────────────────────────────
+   Vapi brand palette, copied from demo-infra/se-demo-hub
+   navy   #000714  (dark text on light ground)
+   cream  #FFFAEB  (default ground)
+   mint   #62F6B5  (secondary accent)
+   teal   #0BD8B6  (primary accent)
+   ────────────────────────────────────────────────────────── */
+
+@theme {
+  --color-cream: #fffaeb;
+  --color-navy: #000714;
+  --color-mint: #62f6b5;
+  --color-teal: #0bd8b6;
+  --radius-brand: 0.85rem;
+}
+
+/* The reference tree keeps all of this inside @layer base and @layer
+   utilities. Tailwind v4 uses real CSS cascade layers, where an unlayered
+   rule beats every layered one, so dropping the wrappers would let the
+   `*` border-color reset override every `border-<color>` utility in the
+   app. Base holds the reset, components holds the brand helpers, and the
+   generated utilities still win over both. */
+
+@layer base {
+  :root {
+    --background: 45 100% 97%;
+    --foreground: 219 100% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 219 100% 6%;
+    --primary: 170 90% 36%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 154 75% 48%;
+    --secondary-foreground: 219 100% 4%;
+    --muted: 45 30% 92%;
+    --muted-foreground: 219 15% 32%;
+    --accent: 170 80% 92%;
+    --accent-foreground: 170 90% 22%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 45 35% 84%;
+    --ring: 170 90% 40%;
+    --radius: 0.85rem;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html,
+  body,
+  #root {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Ambient glows, mint from above and teal from the lower right. */
+  body {
+    background-image:
+      radial-gradient(ellipse 60% 40% at 50% -10%, hsla(154, 89%, 60%, 0.1) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 90% 110%, hsla(170, 90%, 45%, 0.08) 0%, transparent 70%);
+    background-attachment: fixed;
+  }
+}
+
+@layer components {
+  .vapi-glass {
+    background: linear-gradient(
+      180deg,
+      hsla(45, 50%, 100%, 0.7) 0%,
+      hsla(45, 30%, 98%, 0.6) 100%
+    );
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid hsla(219, 20%, 20%, 0.07);
+    border-radius: var(--radius);
+  }
+
+  .vapi-chip {
+    background: linear-gradient(90deg, hsl(154 89% 67%), hsl(170 90% 45%));
+    color: hsl(219 100% 4%);
+  }
+
+  .vapi-text-gradient {
+    background: linear-gradient(
+      90deg,
+      hsl(170 90% 30%) 0%,
+      hsl(154 80% 45%) 50%,
+      hsl(170 90% 35%) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .mono {
+    font-family: Menlo, ui-monospace, 'SF Mono', monospace;
+  }
+
+  .eyebrow {
+    font-family: Menlo, ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.6875rem;
+    color: hsl(var(--muted-foreground));
+  }
+}
