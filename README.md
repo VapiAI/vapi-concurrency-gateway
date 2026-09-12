@@ -25,16 +25,17 @@ The call never starts an assistant, so you pay for the carrier leg and nothing
 else. No model or voice spins up. The caller hears whatever message that client
 configured, and hangs up.
 
-For inbound that is about all you can do, since someone is on the phone and
-there is no work item to park. Outbound gives you more room, and Vapi's V2
-campaigns already pace themselves. You can set `maxConcurrency` on a campaign
-(it defaults to 10, caps at 500, and cannot exceed your org limit), and calls
-that will not fit are retried for up to an hour as capacity frees up.
+For inbound that is about all you can do. Someone is on the phone waiting to be
+answered, so the call cannot wait its turn the way an outbound one can, and the
+retry is them ringing back. Outbound is a list you work through, so it can be
+paced, and Vapi's V2 campaigns already do that. You can set `maxConcurrency` on
+a campaign (it defaults to 10, caps at 500, and cannot exceed your org limit),
+and calls that will not fit are retried for up to an hour as capacity frees up.
 
 Campaign pacing covers one list at a time, though. The budget belongs to the
 campaign rather than the client, so two campaigns for the same client will run
-at twice its slice, and neither of them can see inbound calls at all. That
-leaves each piece with a natural owner.
+at twice its slice, and neither of them can see inbound calls at all. Run both
+and each side covers what the other cannot.
 
 | | Handled by |
 | --- | --- |
@@ -45,8 +46,8 @@ leaves each piece with a natural owner.
 ## Inbound numbers have to be bare
 
 Any number you want governed should have no assistant, squad, or workflow
-attached to it directly. Vapi sends `assistant-request` when it needs someone
-to pick the assistant, and a number that already has one never asks. The call
+attached to it directly. Vapi sends `assistant-request` when it needs someone to
+pick the assistant, and a number that already has one never asks. The call
 connects and the cap never gets consulted, with nothing to suggest anything is
 off.
 
@@ -89,10 +90,10 @@ tree.
 npm run build && npm start
 ```
 
-We used Railway for the reference deployment because it was convenient, and
-Fly, Render, ECS, Cloud Run, or a VM behind nginx all work the same way. Set
-the environment variables, expose the port, and make sure `server.url` on your
-Vapi numbers points at wherever it ends up.
+We used Railway for the reference deployment because it was convenient, and Fly,
+Render, ECS, Cloud Run, or a VM behind nginx all work the same way. Set the
+environment variables, expose the port, and make sure `server.url` on your Vapi
+numbers points at wherever it ends up.
 
 Reservation state lives in Postgres rather than in process memory, so you can
 run several instances behind a load balancer and the cap still holds across all
@@ -126,10 +127,10 @@ exception, since it keeps a timer in memory and expects a single instance.
 ]
 ```
 
-Drop that into `TENANTS_JSON` and run `npm run seed`, then run it again
-whenever you change a cap or a mapping. Both ID fields take arrays, since a
-client may own several numbers or assistants, and `assistantIds` only comes
-into play for outbound.
+Drop that into `TENANTS_JSON` and run `npm run seed`, then run it again whenever
+you change a cap or a mapping. Both ID fields take arrays, since a client may
+own several numbers or assistants, and `assistantIds` only comes into play for
+outbound.
 
 Caps are enforced per tenant and there is no billing logic here, so keeping the
 total at or under the concurrency you bought is on you.
@@ -147,10 +148,10 @@ total at or under the concurrency you bought is on you.
 }
 ```
 
-You get a `201` with a Vapi `callId`, or a `429` once that client is at its
-cap. The route ships with no authentication of its own, on the assumption that
-you already have an auth system and would rather wire in your own than work
-around one we picked. Put yours in front of it before you expose it.
+You get a `201` with a Vapi `callId`, or a `429` once that client is at its cap.
+The route ships with no authentication of its own, on the assumption that you
+already have an auth system and would rather wire in your own than work around
+one we picked. Put yours in front of it before you expose it.
 
 **`GET /api/state`** returns tenants, active slots, and recent events. It is
 open so a static dashboard can render it.
@@ -196,8 +197,8 @@ to catch a dropped webhook, and the gateway works without it. Lives in
 ## Optional: demo mode
 
 Turned on with `DEMO_MODE=true`, which is what the GIF above is running. It
-gives you a way to fill a tenant's lines without dialling real phones, end
-those calls one at a time, and change a cap from the dashboard.
+gives you a way to fill a tenant's lines without dialling real phones, end those
+calls one at a time, and change a cap from the dashboard.
 
 None of it routes around the cap. Simulated calls go through the same `reserve`
 the webhook uses, take the same lock, and get refused at the cap like anything
@@ -206,10 +207,10 @@ prefix, and the end-call route turns down an ID without it, so none of it can
 reach a live call.
 
 A filled tenant then cycles, holding at its cap for 25 seconds and leaving a
-line free for 12 (`DEMO_HOLD_MS` and `DEMO_FREE_MS` if you want to change
-that). The hold gets the longer half deliberately, since sitting at the cap is
-the part worth explaining and the gap is where you place a real call to show it
-getting through.
+line free for 12 (`DEMO_HOLD_MS` and `DEMO_FREE_MS` if you want to change that).
+The hold gets the longer half deliberately, since sitting at the cap is the part
+worth explaining and the gap is where you place a real call to show it getting
+through.
 
 If you have two phones handy you can skip the simulation entirely. Set a
 client's cap to 1 and call its number twice over. The first connects and the
